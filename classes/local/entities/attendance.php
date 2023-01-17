@@ -60,6 +60,7 @@ class attendance extends base {
                 'attendance_sessions' => 'attsess',
                 'attendance_log' => 'attlog',
                 'attendance_statuses' => 'attstat',
+                'numtakensessions' => 'numtakensessions',
                ];
     }
 
@@ -113,6 +114,7 @@ class attendance extends base {
         $attendancesessionalias = $this->get_table_alias('attendance_sessions');
         $attendancelogalias = $this->get_table_alias('attendance_log');
         $attendancestatusalias = $this->get_table_alias('attendance_statuses');
+        $numtakensessionsalias = $this->get_table_alias('numtakensessions');
 
         $join = $this->attendancejoin();
 
@@ -219,6 +221,27 @@ class attendance extends base {
             ->add_join($join)
             ->set_is_sortable(true)
             ->add_field("{$attendancelogalias}.remarks");
+
+        // Taken sessions column.
+        $columns[] = (new column(
+            'numtakensessions',
+            new lang_string('numsessions', 'mod_attendance'),
+            $this->get_entity_name()
+        ))
+            ->add_join($join)
+            ->add_join("JOIN (
+                SELECT a.course, atlo.studentid, COUNT(DISTINCT atse.id) AS numtakensessions
+                FROM {attendance_sessions} atse
+                JOIN {attendance} a ON a.id = atse.attendanceid
+                JOIN {course} c ON c.id = a.course
+                JOIN {attendance_log} atlo ON (atlo.sessionid = atse.id)
+                JOIN {attendance_statuses} atst ON (atst.id = atlo.statusid AND atst.deleted = 0 AND atst.visible = 1)
+                GROUP BY a.id, a.course, atlo.studentid
+            ) {$numtakensessionsalias}
+            ON {$numtakensessionsalias}.course = {$attendancealias}.course
+            AND {$numtakensessionsalias}.studentid = {$attendancelogalias}.studentid")
+            ->set_is_sortable(true)
+            ->add_field("{$numtakensessionsalias}.numtakensessions");
 
         return $columns;
     }
