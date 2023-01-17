@@ -62,6 +62,7 @@ class attendance extends base {
                 'attendance_statuses' => 'attstat',
                 'numsessionstaken' => 'numsessionstaken',
                 'pointssessionscompleted' => 'pointssessionscompleted',
+                'maxpossible' => 'maxpossible',
                ];
     }
 
@@ -117,6 +118,7 @@ class attendance extends base {
         $attendancestatusalias = $this->get_table_alias('attendance_statuses');
         $numsessionstakenalias = $this->get_table_alias('numsessionstaken');
         $pointssessionscompletedalias = $this->get_table_alias('pointssessionscompleted');
+        $maxpossiblealias = $this->get_table_alias('maxpossible');
 
         $join = $this->attendancejoin();
 
@@ -265,6 +267,33 @@ class attendance extends base {
             AND {$pointssessionscompletedalias}.studentid = {$attendancelogalias}.studentid")
             ->set_is_sortable(true)
             ->add_field("{$pointssessionscompletedalias}.points");
+
+        // Maximum possible points column.
+        $columns[] = (new column(
+            'maxpossible',
+            new lang_string('maxpossible', 'mod_attendance'),
+            $this->get_entity_name()
+        ))
+            ->add_join($join)
+            ->add_join("JOIN (
+                SELECT a.course, atlo.studentid, SUM(stm.maxgrade) AS maxpoints
+                FROM {attendance_sessions} atse
+                JOIN {attendance} a ON a.id = atse.attendanceid
+                JOIN {course} c ON c.id = a.course
+                JOIN {attendance_log} atlo ON atlo.sessionid = atse.id
+                JOIN (
+                    SELECT attendanceid, setnumber, MAX(grade) AS maxgrade
+                    FROM {attendance_statuses}
+                    WHERE deleted = 0
+                    AND visible = 1
+                    GROUP BY attendanceid, setnumber
+                ) stm ON stm.setnumber = atse.statusset AND stm.attendanceid = atse.attendanceid
+                GROUP BY a.id, a.course, atlo.studentid
+            ) {$maxpossiblealias}
+            ON {$maxpossiblealias}.course = {$attendancealias}.course
+            AND {$maxpossiblealias}.studentid = {$attendancelogalias}.studentid")
+            ->set_is_sortable(true)
+            ->add_field("{$maxpossiblealias}.maxpoints");
 
         return $columns;
     }
