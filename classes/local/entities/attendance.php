@@ -53,6 +53,7 @@ class attendance extends base {
             'attendance_sessions' => 'attsess',
             'attendance_log' => 'attlog',
             'attendance_statuses' => 'attstat',
+            'numsessions' => 'numsessions',
             'numsessionstaken' => 'numsessionstaken',
             'pointssessionscompleted' => 'pointssessionscompleted',
             'maxpossible' => 'maxpossible',
@@ -109,6 +110,7 @@ class attendance extends base {
         $attendancesessionalias = $this->get_table_alias('attendance_sessions');
         $attendancelogalias = $this->get_table_alias('attendance_log');
         $attendancestatusalias = $this->get_table_alias('attendance_statuses');
+        $numsessionsalias = $this->get_table_alias('numsessions');
         $numsessionstakenalias = $this->get_table_alias('numsessionstaken');
         $pointssessionscompletedalias = $this->get_table_alias('pointssessionscompleted');
         $maxpossiblealias = $this->get_table_alias('maxpossible');
@@ -218,6 +220,24 @@ class attendance extends base {
             ->add_join($join)
             ->set_is_sortable(true)
             ->add_field("{$attendancelogalias}.remarks");
+
+        // Total number of sessions column.
+        $columns[] = (new column(
+            'numsessions',
+            new lang_string('numsessions', 'mod_attendance'),
+            $this->get_entity_name()
+        ))
+            ->add_join($join)
+            ->add_join("JOIN (
+                SELECT a.course, COUNT(atse.id) AS numsessions
+                FROM {attendance_sessions} atse
+                JOIN {attendance} a ON a.id = atse.attendanceid
+                JOIN {course} c ON c.id = a.course
+                GROUP BY a.course
+            ) {$numsessionsalias}
+            ON {$numsessionsalias}.course = {$attendancealias}.course")
+            ->set_is_sortable(true)
+            ->add_field("{$numsessionsalias}.numsessions");
 
         // Taken sessions column.
         $columns[] = (new column(
