@@ -60,8 +60,8 @@ class attendance extends base {
                 'attendance_sessions' => 'attsess',
                 'attendance_log' => 'attlog',
                 'attendance_statuses' => 'attstat',
-                'numtakensessions' => 'numtakensessions',
-                'pointsallsessions' => 'pointsallsessions',
+                'numsessionstaken' => 'numsessionstaken',
+                'pointssessionscompleted' => 'pointssessionscompleted',
                ];
     }
 
@@ -115,8 +115,8 @@ class attendance extends base {
         $attendancesessionalias = $this->get_table_alias('attendance_sessions');
         $attendancelogalias = $this->get_table_alias('attendance_log');
         $attendancestatusalias = $this->get_table_alias('attendance_statuses');
-        $numtakensessionsalias = $this->get_table_alias('numtakensessions');
-        $pointsallsessionsalias = $this->get_table_alias('pointsallsessions');
+        $numsessionstakenalias = $this->get_table_alias('numsessionstaken');
+        $pointssessionscompletedalias = $this->get_table_alias('pointssessionscompleted');
 
         $join = $this->attendancejoin();
 
@@ -226,29 +226,29 @@ class attendance extends base {
 
         // Taken sessions column.
         $columns[] = (new column(
-            'numtakensessions',
-            new lang_string('numsessions', 'mod_attendance'),
+            'numsessionstaken',
+            new lang_string('numsessionstaken', 'mod_attendance'),
             $this->get_entity_name()
         ))
             ->add_join($join)
             ->add_join("JOIN (
-                SELECT a.course, atlo.studentid, COUNT(DISTINCT atse.id) AS numtakensessions
+                SELECT a.course, atlo.studentid, COUNT(DISTINCT atse.id) AS numsessionstaken
                 FROM {attendance_sessions} atse
                 JOIN {attendance} a ON a.id = atse.attendanceid
                 JOIN {course} c ON c.id = a.course
                 JOIN {attendance_log} atlo ON (atlo.sessionid = atse.id)
                 JOIN {attendance_statuses} atst ON (atst.id = atlo.statusid AND atst.deleted = 0 AND atst.visible = 1)
                 GROUP BY a.id, a.course, atlo.studentid
-            ) {$numtakensessionsalias}
-            ON {$numtakensessionsalias}.course = {$attendancealias}.course
-            AND {$numtakensessionsalias}.studentid = {$attendancelogalias}.studentid")
+            ) {$numsessionstakenalias}
+            ON {$numsessionstakenalias}.course = {$attendancealias}.course
+            AND {$numsessionstakenalias}.studentid = {$attendancelogalias}.studentid")
             ->set_is_sortable(true)
-            ->add_field("{$numtakensessionsalias}.numtakensessions");
+            ->add_field("{$numsessionstakenalias}.numsessionstaken");
 
         // Total points across sessions column.
         $columns[] = (new column(
-            'pointsallsessions',
-            new lang_string('pointsallsessions', 'mod_attendance'),
+            'pointssessionscompleted',
+            new lang_string('pointssessionscompleted', 'mod_attendance'),
             $this->get_entity_name()
         ))
             ->add_join($join)
@@ -260,11 +260,11 @@ class attendance extends base {
                 JOIN {attendance_log} atlo ON (atlo.sessionid = atse.id)
                 JOIN {attendance_statuses} atst ON (atst.id = atlo.statusid AND atst.deleted = 0 AND atst.visible = 1)
                 GROUP BY a.id, a.course, atlo.studentid
-            ) {$pointsallsessionsalias}
-            ON {$pointsallsessionsalias}.course = {$attendancealias}.course
-            AND {$pointsallsessionsalias}.studentid = {$attendancelogalias}.studentid")
+            ) {$pointssessionscompletedalias}
+            ON {$pointssessionscompletedalias}.course = {$attendancealias}.course
+            AND {$pointssessionscompletedalias}.studentid = {$attendancelogalias}.studentid")
             ->set_is_sortable(true)
-            ->add_field("{$pointsallsessionsalias}.points");
+            ->add_field("{$pointssessionscompletedalias}.points");
 
         return $columns;
     }

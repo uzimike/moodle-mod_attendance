@@ -363,6 +363,7 @@ $string['notset'] = 'not set';
 $string['noupgradefromthisversion'] = 'The Attendance module cannot upgrade from the version of attforblock you have installed. - please delete attforblock or upgrade it to the latest version before isntalling the new attendance module';
 $string['nounmarkedstatusset'] = 'No unmarked status is configured for this session (id:{$a->sessionid}), to fix this update the <a href="{$a->url}">Status set</a>';
 $string['numsessions'] = 'Number of sessions';
+$string['numsessionstaken'] = 'Number of sessions taken';
 $string['olddate'] = 'Old date';
 $string['onlyselectedusers'] = 'Export specific users';
 $string['overallsessions'] = 'Over all sessions';
